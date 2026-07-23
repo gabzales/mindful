@@ -61,14 +61,11 @@ export async function signInWithEmail(email: string, password: string) {
 }
 
 export async function signOut() {
-<<<<<<< HEAD
   if (typeof window !== "undefined") {
     localStorage.removeItem("mock_user");
     window.location.href = "/";
     return;
   }
-=======
->>>>>>> 193e5985b87170ea29f4ecb458d1028b9e8bbddd
   const fbAuth = auth;
   if (!fbAuth) throw new Error("Firebase not configured");
   await fbSignOut(fbAuth);

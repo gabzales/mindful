@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { Menu, X, Globe, LogOut, ArrowRight } from "lucide-react";
 import { useLang } from "@/contexts/LangContext";
 import { useAuthContext } from "@/components/FirebaseProvider";
@@ -35,20 +36,17 @@ export function MobileHeader() {
 
   return (
     <>
-      <header className="fixed top-0 left-0 right-0 z-40 flex items-center justify-between border-b border-border bg-surface px-4 py-3.5 shadow-sm lg:hidden">
+      <header className="fixed top-0 left-0 right-0 z-40 flex items-center justify-between border-b border-border bg-surface px-4 py-3 shadow-sm lg:hidden">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-sm font-bold text-white shadow-sm">
-            mi
-          </div>
-          <div className="flex flex-col leading-none">
-            <span className="font-display text-sm font-bold text-ink">
-              Mindfulness
-            </span>
-            <span className="text-[10px] text-ink-soft font-medium">
-              Indonesia
-            </span>
-          </div>
+          <Image
+            src="/mindful.png"
+            alt="Mindfulness Indonesia"
+            width={96}
+            height={50}
+            priority
+            className="h-10 w-auto object-contain"
+          />
         </Link>
 
         {/* Action Controls */}

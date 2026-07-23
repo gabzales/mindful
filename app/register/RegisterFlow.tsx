@@ -2,11 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-<<<<<<< HEAD
 import { Check, ShieldAlert, Eye, EyeOff } from "lucide-react";
-=======
-import { Check, ShieldAlert } from "lucide-react";
->>>>>>> 193e5985b87170ea29f4ecb458d1028b9e8bbddd
 import { createUserWithEmailAndPassword, sendEmailVerification, reload } from "firebase/auth";
 import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase/config";
@@ -36,11 +32,8 @@ export function RegisterFlow() {
   const [otpSentNotice, setOtpSentNotice] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-<<<<<<< HEAD
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-=======
->>>>>>> 193e5985b87170ea29f4ecb458d1028b9e8bbddd
   const [biodata, setBiodata] = useState({
     name: "",
     company: "",
@@ -134,7 +127,7 @@ export function RegisterFlow() {
   }
 
   return (
-    <div className="w-full max-w-sm">
+    <div className="w-full max-w-md sm:max-w-lg lg:max-w-xl">
       <div className="mb-8 flex items-center justify-center gap-2">
         {steps.map((s, i) => (
           <div key={s} className="flex items-center gap-2">
@@ -154,7 +147,7 @@ export function RegisterFlow() {
         ))}
       </div>
 
-      <div className="rounded-2xl border border-border bg-surface p-8">
+      <div className="mt-6">
         {step === 0 && (
           <>
             <h1 className="font-display text-xl font-semibold text-ink">
@@ -285,7 +278,6 @@ export function RegisterFlow() {
                 <label className="mb-1.5 block text-sm font-medium text-ink">
                   Password
                 </label>
-<<<<<<< HEAD
                 <div className="relative">
                   <input
                     type={showPassword ? "text" : "password"}
@@ -302,20 +294,11 @@ export function RegisterFlow() {
                     {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
                 </div>
-=======
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full rounded-lg border border-border bg-background px-3.5 py-2.5 text-sm text-ink outline-none focus:border-primary"
-                />
->>>>>>> 193e5985b87170ea29f4ecb458d1028b9e8bbddd
               </div>
               <div>
                 <label className="mb-1.5 block text-sm font-medium text-ink">
                   Konfirmasi Password
                 </label>
-<<<<<<< HEAD
                 <div className="relative">
                   <input
                     type={showConfirmPassword ? "text" : "password"}
@@ -332,14 +315,6 @@ export function RegisterFlow() {
                     {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
                 </div>
-=======
-                <input
-                  type="password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="w-full rounded-lg border border-border bg-background px-3.5 py-2.5 text-sm text-ink outline-none focus:border-primary"
-                />
->>>>>>> 193e5985b87170ea29f4ecb458d1028b9e8bbddd
               </div>
             </div>
             {error && <p className="mt-2 text-sm text-danger">{error}</p>}
@@ -372,52 +347,101 @@ export function RegisterFlow() {
               Data ini membantu kami memberi rekomendasi yang lebih tepat.
             </p>
             <div className="mt-6 space-y-4">
-              <input
-                placeholder="Nama Lengkap"
-                value={biodata.name}
-                onChange={(e) => setBiodata({ ...biodata, name: e.target.value })}
-                className="w-full rounded-lg border border-border bg-background px-3.5 py-2.5 text-sm text-ink outline-none focus:border-primary"
-              />
-              <input
-                placeholder="Nama Perusahaan"
-                value={biodata.company}
-                onChange={(e) => setBiodata({ ...biodata, company: e.target.value })}
-                className="w-full rounded-lg border border-border bg-background px-3.5 py-2.5 text-sm text-ink outline-none focus:border-primary"
-              />
-              <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="mb-1 block text-xs font-semibold text-ink">
+                  Nama Lengkap
+                </label>
                 <input
-                  placeholder="Department"
-                  value={biodata.department}
-                  onChange={(e) =>
-                    setBiodata({ ...biodata, department: e.target.value })
-                  }
-                  className="w-full rounded-lg border border-border bg-background px-3.5 py-2.5 text-sm text-ink outline-none focus:border-primary"
-                />
-                <input
-                  placeholder="Job Level"
-                  value={biodata.jobLevel}
-                  onChange={(e) =>
-                    setBiodata({ ...biodata, jobLevel: e.target.value })
-                  }
-                  className="w-full rounded-lg border border-border bg-background px-3.5 py-2.5 text-sm text-ink outline-none focus:border-primary"
+                  type="text"
+                  value={biodata.name}
+                  onChange={(e) => setBiodata({ ...biodata, name: e.target.value })}
+                  placeholder="Andi Pratama"
+                  className="w-full rounded-lg border border-border bg-background px-3.5 py-2 text-sm text-ink outline-none focus:border-primary"
                 />
               </div>
+
+              <div>
+                <label className="mb-1 block text-xs font-semibold text-ink">
+                  Nama Perusahaan
+                </label>
+                <input
+                  type="text"
+                  value={biodata.company}
+                  onChange={(e) => setBiodata({ ...biodata, company: e.target.value })}
+                  placeholder="PT Maju Jaya"
+                  className="w-full rounded-lg border border-border bg-background px-3.5 py-2 text-sm text-ink outline-none focus:border-primary"
+                />
+              </div>
+
               <div className="grid grid-cols-2 gap-3">
-                <input
-                  placeholder="Gender"
-                  value={biodata.gender}
-                  onChange={(e) => setBiodata({ ...biodata, gender: e.target.value })}
-                  className="w-full rounded-lg border border-border bg-background px-3.5 py-2.5 text-sm text-ink outline-none focus:border-primary"
-                />
-                <input
-                  placeholder="Usia"
-                  value={biodata.age}
-                  onChange={(e) => {
-                    const val = e.target.value.replace(/\D/g, "");
-                    setBiodata({ ...biodata, age: val });
-                  }}
-                  className="w-full rounded-lg border border-border bg-background px-3.5 py-2.5 text-sm text-ink outline-none focus:border-primary"
-                />
+                <div>
+                  <label className="mb-1 block text-xs font-semibold text-ink">
+                    Departemen
+                  </label>
+                  <select
+                    value={biodata.department}
+                    onChange={(e) => setBiodata({ ...biodata, department: e.target.value })}
+                    className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-ink outline-none focus:border-primary"
+                  >
+                    <option value="">Pilih...</option>
+                    <option value="Human Resources">HR / Human Resources</option>
+                    <option value="Finance">Finance & Accounting</option>
+                    <option value="IT / Engineering">IT & Engineering</option>
+                    <option value="Operations">Operations</option>
+                    <option value="Marketing">Marketing & Sales</option>
+                    <option value="Lainnya">Lainnya</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="mb-1 block text-xs font-semibold text-ink">
+                    Level Jabatan
+                  </label>
+                  <select
+                    value={biodata.jobLevel}
+                    onChange={(e) => setBiodata({ ...biodata, jobLevel: e.target.value })}
+                    className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-ink outline-none focus:border-primary"
+                  >
+                    <option value="">Pilih...</option>
+                    <option value="Staff">Staff / Karyawan</option>
+                    <option value="Supervisor">Supervisor</option>
+                    <option value="Manager">Manager</option>
+                    <option value="Director">Director / Executive</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="mb-1 block text-xs font-semibold text-ink">
+                    Jenis Kelamin
+                  </label>
+                  <select
+                    value={biodata.gender}
+                    onChange={(e) => setBiodata({ ...biodata, gender: e.target.value })}
+                    className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-ink outline-none focus:border-primary"
+                  >
+                    <option value="">Pilih...</option>
+                    <option value="Male">Laki-laki</option>
+                    <option value="Female">Perempuan</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="mb-1 block text-xs font-semibold text-ink">
+                    Usia
+                  </label>
+                  <input
+                    type="text"
+                    value={biodata.age}
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/\D/g, "");
+                      setBiodata({ ...biodata, age: val });
+                    }}
+                    placeholder="29"
+                    className="w-full rounded-lg border border-border bg-background px-3.5 py-2 text-sm text-ink outline-none focus:border-primary"
+                  />
+                </div>
               </div>
             </div>
             {error && <p className="mt-2 text-sm text-danger">{error}</p>}

@@ -9,10 +9,7 @@ import { signInWithGoogle, signInWithEmail } from "@/lib/firebase/auth";
 import { db } from "@/lib/firebase/config";
 import { roleRoutes, type Role } from "@/lib/roles";
 import { Skeleton } from "@/components/Skeleton";
-<<<<<<< HEAD
-import { Eye, EyeOff } from "lucide-react";
-=======
->>>>>>> 193e5985b87170ea29f4ecb458d1028b9e8bbddd
+import { Eye, EyeOff, Mail, Lock } from "lucide-react";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -20,10 +17,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-<<<<<<< HEAD
   const [showPassword, setShowPassword] = useState(false);
-=======
->>>>>>> 193e5985b87170ea29f4ecb458d1028b9e8bbddd
 
   async function redirectByRole(uid: string) {
     if (!db) {
@@ -31,8 +25,13 @@ export default function LoginPage() {
       return;
     }
     const snap = await getDoc(doc(db, "users", uid));
-    const role = (snap.exists() ? (snap.data().role as Role) : "employee") || "employee";
-    router.push(roleRoutes[role] || "/dashboard");
+    if (snap.exists()) {
+      const data = snap.data();
+      const role = data.role as Role;
+      router.push(roleRoutes[role] || "/dashboard");
+    } else {
+      router.push("/dashboard");
+    }
   }
 
   async function handleGoogleSignIn() {
@@ -51,7 +50,6 @@ export default function LoginPage() {
   async function handleEmailSignIn(e: React.FormEvent) {
     e.preventDefault();
     setError("");
-<<<<<<< HEAD
     const trimmedEmail = email.trim();
     if (!trimmedEmail || !password) {
       setError("Email dan password wajib diisi");
@@ -68,15 +66,6 @@ export default function LoginPage() {
     setLoading(true);
     try {
       const user = await signInWithEmail(trimmedEmail, password);
-=======
-    if (!email.trim() || !password) {
-      setError("Email dan password wajib diisi");
-      return;
-    }
-    setLoading(true);
-    try {
-      const user = await signInWithEmail(email.trim(), password);
->>>>>>> 193e5985b87170ea29f4ecb458d1028b9e8bbddd
       await redirectByRole(user.uid);
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : "Gagal masuk";
@@ -109,96 +98,105 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4 py-10">
-      <div className="w-full max-w-sm">
-        <Link href="/" className="mb-8 flex justify-center">
-          <Image
-            src="/mindfulness-logo.png"
-            alt="Mindfulness Indonesia"
-            width={180}
-            height={45}
-            priority
-          />
-        </Link>
-        <div className="rounded-2xl border border-border bg-surface p-8">
-          <h1 className="font-display text-xl font-semibold text-ink">Masuk</h1>
-          <p className="mt-1 text-sm text-ink-soft">
-            Masuk ke akun Employee Wellbeing Portal kamu. Role kamu (employee, HR,
-            psikolog, admin, dsb) terbaca otomatis dan diarahkan ke dashboard yang sesuai.
+    <div className="flex min-h-screen bg-[#2A093D] overflow-hidden">
+      {/* Left Column: Login Form Card */}
+      <div className="relative flex w-full flex-col justify-center items-center px-6 py-12 lg:w-1/2 bg-white lg:rounded-r-[48px] z-20 shadow-2xl min-h-screen">
+        
+        {/* Top-Left Logo (mindful.png) - Enlarge size and give padding */}
+        <div className="absolute top-8 left-8 sm:top-10 sm:left-10 z-30">
+          <Link href="/">
+            <Image
+              src="/mindful.png"
+              alt="Mindfulness Indonesia"
+              width={200}
+              height={104}
+              priority
+              className="h-14 sm:h-16 w-auto object-contain hover:opacity-85 transition-opacity"
+            />
+          </Link>
+        </div>
+
+        {/* Clean, Modern Form Container */}
+        <div className="w-full max-w-md px-6 mt-28 lg:mt-0 flex flex-col justify-center">
+          <h1 className="font-display text-3xl font-extrabold text-[#2A093D] tracking-tight">Masuk</h1>
+          <p className="mt-2 text-xs sm:text-sm text-ink-soft leading-relaxed">
+            Masuk ke akun Employee Wellbeing Portal kamu. Role kamu terbaca otomatis dan diarahkan ke dashboard yang sesuai.
           </p>
 
-          <form onSubmit={handleEmailSignIn} className="mt-6 space-y-4">
+          <form onSubmit={handleEmailSignIn} className="mt-8 space-y-5">
             <div>
-              <label htmlFor="email" className="mb-1.5 block text-sm font-medium text-ink">
-                Email
+              <label htmlFor="email" className="mb-2 block text-xs font-bold uppercase tracking-wider text-[#2A093D]">
+                Email Perusahaan
               </label>
-              <input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="nama@perusahaan.com"
-                className="w-full rounded-lg border border-border bg-background px-3.5 py-2.5 text-sm text-ink outline-none focus:border-primary"
-              />
+              <div className="relative">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-ink-soft/70 pointer-events-none">
+                  <Mail size={18} />
+                </span>
+                <input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="nama@perusahaan.com"
+                  className="w-full rounded-2xl border border-border/80 bg-white pl-11 pr-4 py-3.5 text-sm text-ink outline-none focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all shadow-xs hover:border-border-hover"
+                  required
+                />
+              </div>
             </div>
+            
             <div>
-              <label htmlFor="password" className="mb-1.5 block text-sm font-medium text-ink">
+              <label htmlFor="password" className="mb-2 block text-xs font-bold uppercase tracking-wider text-[#2A093D]">
                 Password
               </label>
-<<<<<<< HEAD
               <div className="relative">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-ink-soft/70 pointer-events-none">
+                  <Lock size={18} />
+                </span>
                 <input
                   id="password"
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full rounded-lg border border-border bg-background pl-3.5 pr-10 py-2.5 text-sm text-ink outline-none focus:border-primary"
+                  placeholder="••••••••"
+                  className="w-full rounded-2xl border border-border/80 bg-white pl-11 pr-12 py-3.5 text-sm text-ink outline-none focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all shadow-xs hover:border-border-hover"
+                  required
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-soft hover:text-ink focus:outline-none"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-ink-soft hover:text-[#2A093D] focus:outline-none transition-colors"
                   aria-label={showPassword ? "Sembunyikan password" : "Tampilkan password"}
                 >
-                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
             </div>
-
-=======
-              <input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full rounded-lg border border-border bg-background px-3.5 py-2.5 text-sm text-ink outline-none focus:border-primary"
-              />
-            </div>
->>>>>>> 193e5985b87170ea29f4ecb458d1028b9e8bbddd
-            {error && <p className="text-sm text-danger">{error}</p>}
+            
+            {error && <p className="text-xs font-medium text-danger">{error}</p>}
+            
             <button
               type="submit"
               disabled={loading}
-              className="w-full rounded-lg bg-primary py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary-soft disabled:opacity-50"
+              className="w-full rounded-2xl bg-primary py-3.5 text-sm font-bold text-white hover:bg-primary-soft disabled:opacity-50 transition-all duration-200 transform hover:-translate-y-0.5 active:translate-y-0 cursor-pointer shadow-md shadow-primary/10 hover:shadow-lg"
             >
               Masuk
             </button>
           </form>
 
-          <div className="relative mt-6">
+          <div className="relative mt-8">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-border" />
+              <div className="w-full border-t border-border/60" />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-surface px-2 text-ink-soft">atau</span>
+              <span className="bg-white px-3 text-ink-soft font-semibold">atau masuk dengan</span>
             </div>
           </div>
 
-          <div className="mt-6 space-y-4">
+          <div className="mt-8 space-y-5">
             <button
               onClick={handleGoogleSignIn}
               disabled={loading}
-              className="flex w-full items-center justify-center gap-3 rounded-lg border border-border bg-surface px-4 py-2.5 text-sm font-medium text-ink transition-colors hover:bg-surface-sunk disabled:opacity-50"
+              className="flex w-full items-center justify-center gap-3 rounded-2xl border border-border/80 bg-white px-4 py-3.5 text-sm font-bold text-ink transition-all duration-200 hover:bg-[#F7F4FA] hover:border-primary/20 disabled:opacity-50 cursor-pointer shadow-xs transform hover:-translate-y-0.5 active:translate-y-0"
             >
               <svg className="h-5 w-5" viewBox="0 0 24 24">
                 <path
@@ -218,15 +216,67 @@ export default function LoginPage() {
                   fill="#EA4335"
                 />
               </svg>
-              Masuk dengan Google
+              Google Workspace
             </button>
 
-            <Link
-              href="/register"
-              className="flex w-full items-center justify-center rounded-lg border border-border bg-surface py-2.5 text-sm font-semibold text-ink hover:bg-surface-sunk"
-            >
-              Belum punya akun? Daftar
-            </Link>
+            <div className="text-center text-xs text-ink-soft font-medium">
+              Belum punya akun?{" "}
+              <Link href="/register" className="font-bold text-primary hover:underline hover:text-primary-soft transition-colors">
+                Daftar sekarang
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Right Column: Branding Hero & Corporate Trust Banner (Desktop only) */}
+      <div className="hidden lg:flex lg:w-1/2 relative flex-col justify-between p-16 text-white overflow-hidden bg-[#2A093D]">
+        {/* Grid Mesh Overlay & Ambient Glow */}
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.03)_1.5px,transparent_1.5px),linear-gradient(to_bottom,rgba(255,255,255,0.03)_1.5px,transparent_1.5px)] bg-[size:4.5rem_4.5rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_40%,#000_80%,transparent_100%)] opacity-80 pointer-events-none" />
+        
+        <div className="absolute top-1/4 left-1/4 w-80 h-80 rounded-full bg-primary-soft/30 blur-3xl pointer-events-none animate-pulse" style={{ animationDuration: "10s" }} />
+        <div className="absolute bottom-1/3 right-1/4 w-96 h-96 rounded-full bg-accent/10 blur-3xl pointer-events-none animate-pulse" style={{ animationDuration: "14s" }} />
+
+        {/* Content Container (z-20 so it remains sharp and readable) */}
+        <div className="relative z-20 flex flex-col justify-between h-full">
+          <div className="h-10" />
+
+          {/* Hero titles & description */}
+          <div className="space-y-6 max-w-md my-auto text-left">
+            <div className="space-y-2">
+              <span className="text-[10px] font-bold uppercase tracking-widest text-[#FFA400] bg-white/10 px-3.5 py-1 rounded-full border border-white/5">
+                Authorized Institution
+              </span>
+              <h2 className="font-display text-4xl font-extrabold tracking-tight text-[#FFA400] leading-tight mt-3">
+                Welcome to
+              </h2>
+              <h2 className="font-display text-5xl sm:text-6xl font-black tracking-tight text-white leading-none">
+                Mindfulness
+              </h2>
+              <h2 className="font-display text-5xl sm:text-6xl font-black tracking-tight text-white leading-none mt-1">
+                Indonesia
+              </h2>
+            </div>
+            
+            <p className="text-sm text-purple-100/90 leading-relaxed font-medium">
+              Mindfulness Indonesia is the first and only authorized Mindfulness institution in Indonesia. Established in 2016, we offer guided Mindfulness training practice by certified instructors.
+            </p>
+          </div>
+
+          {/* Trust section on purple background */}
+          <div className="flex flex-col items-center border-t border-white/10 pt-8">
+            <p className="text-[10px] font-bold text-[#FFA400]/80 uppercase tracking-widest mb-6">
+              Trusted by corporate teams at:
+            </p>
+            <div className="relative w-full h-32 flex items-center justify-center">
+              <Image
+                src="/Clients-2.png"
+                alt="Trusted corporate teams"
+                fill
+                className="object-contain pointer-events-none filter grayscale invert brightness-200 contrast-150 opacity-40 hover:opacity-75 transition-opacity duration-300"
+                priority
+              />
+            </div>
           </div>
         </div>
       </div>

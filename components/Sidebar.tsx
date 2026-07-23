@@ -28,11 +28,7 @@ const navItems = [
   { href: "/dashboard/reports", label: "Laporan Saya", icon: FileText },
 ];
 
-<<<<<<< HEAD
 export function Sidebar({ hideMobileToggle = false }: { hideMobileToggle?: boolean }) {
-=======
-export function Sidebar() {
->>>>>>> 193e5985b87170ea29f4ecb458d1028b9e8bbddd
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const { profile } = useAuthContext();
@@ -72,11 +68,12 @@ export function Sidebar() {
     <>
       <div className="flex items-center gap-2 px-6 py-6">
         <Image
-          src="/mindfulness-logo.png"
+          src="/mindful.png"
           alt="Mindfulness Indonesia"
-          width={140}
-          height={35}
+          width={152}
+          height={80}
           priority
+          className="h-auto w-36 sm:w-40 object-contain"
         />
       </div>
       <nav className="flex-1 space-y-1 px-3">
@@ -107,7 +104,6 @@ export function Sidebar() {
 
   return (
     <>
-<<<<<<< HEAD
       {!hideMobileToggle && (
         <button
           onClick={() => setOpen(!open)}
@@ -118,23 +114,12 @@ export function Sidebar() {
       )}
 
       {!hideMobileToggle && open && (
-=======
-      <button
-        onClick={() => setOpen(!open)}
-        className="fixed left-4 top-4 z-50 flex h-10 w-10 items-center justify-center rounded-lg bg-surface shadow-md border border-border text-ink lg:hidden"
-      >
-        {open ? <X size={20} /> : <Menu size={20} />}
-      </button>
-
-      {open && (
->>>>>>> 193e5985b87170ea29f4ecb458d1028b9e8bbddd
         <div
           className="fixed inset-0 z-40 bg-black/30 lg:hidden"
           onClick={() => setOpen(false)}
         />
       )}
 
-<<<<<<< HEAD
       <aside className="hidden lg:flex lg:fixed lg:inset-y-0 lg:left-0 lg:w-64 lg:flex-col lg:border-r lg:border-border lg:bg-surface lg:z-30">
         {sidebarContent}
       </aside>
@@ -148,19 +133,6 @@ export function Sidebar() {
           {sidebarContent}
         </aside>
       )}
-=======
-      <aside className="hidden lg:flex lg:h-screen lg:w-64 lg:shrink-0 lg:flex-col lg:border-r lg:border-border lg:bg-surface">
-        {sidebarContent}
-      </aside>
-
-      <aside
-        className={`fixed inset-y-0 left-0 z-50 flex w-64 flex-col bg-surface transition-transform duration-300 lg:hidden ${
-          open ? "translate-x-0" : "-translate-x-full"
-        }`}
-      >
-        {sidebarContent}
-      </aside>
->>>>>>> 193e5985b87170ea29f4ecb458d1028b9e8bbddd
     </>
   );
 }

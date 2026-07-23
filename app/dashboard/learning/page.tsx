@@ -1,11 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-<<<<<<< HEAD
 import { Play, FileText, Headphones, Wind, Check, ChevronDown, ChevronUp, CheckCircle2, Circle } from "lucide-react";
-=======
-import { Play, FileText, Headphones, Wind, Check } from "lucide-react";
->>>>>>> 193e5985b87170ea29f4ecb458d1028b9e8bbddd
 import { learningLibrary } from "@/lib/data";
 import { useAuthContext } from "@/components/FirebaseProvider";
 import {
@@ -22,7 +18,6 @@ const typeIcon = {
   "Mindfulness Audio": Wind,
 };
 
-<<<<<<< HEAD
 const subItemsMap: Record<string, { title: string; duration?: string }[]> = {
   l1: [
     { title: "Pengenalan Teknik Bernapas", duration: "2 min" },
@@ -50,27 +45,14 @@ const subItemsMap: Record<string, { title: string; duration?: string }[]> = {
     { title: "Transisi Menuju Tidur Lelap", duration: "3 min" },
   ],
 };
-=======
-// Clicking an item cycles it through these stages. This is a simple MVP
-// progress model (no per-second video tracking) — good enough to make
-// progress real per-user instead of a fixed number shown to everyone.
-function nextProgress(current: number): number {
-  if (current === 0) return 50;
-  if (current < 100) return 100;
-  return 0; // clicking a completed item resets it, in case they revisit it
-}
->>>>>>> 193e5985b87170ea29f4ecb458d1028b9e8bbddd
 
 export default function LearningPage() {
   const { user, loading: authLoading } = useAuthContext();
   const [progress, setProgress] = useState<LearningProgressMap>({});
   const [progressLoading, setProgressLoading] = useState(true);
   const [savingId, setSavingId] = useState<string | null>(null);
-<<<<<<< HEAD
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
-=======
->>>>>>> 193e5985b87170ea29f4ecb458d1028b9e8bbddd
   const loading = authLoading || (!!user && progressLoading);
 
   useEffect(() => {
@@ -82,7 +64,6 @@ export default function LearningPage() {
     return unsub;
   }, [user]);
 
-<<<<<<< HEAD
   async function handleToggleProgress(itemId: string, nextProgressVal: number) {
     if (!user) return;
     setSavingId(itemId);
@@ -94,28 +75,12 @@ export default function LearningPage() {
       await setLearningProgress(user.uid, itemId, nextProgressVal);
     } catch {
       // Revert on error
-=======
-  async function handleToggle(itemId: string) {
-    if (!user) return;
-    const current = progress[itemId] ?? 0;
-    const next = nextProgress(current);
-    setSavingId(itemId);
-    // Optimistic update so the click feels instant; onSnapshot will
-    // reconcile with the server value right after.
-    setProgress((prev) => ({ ...prev, [itemId]: next }));
-    try {
-      await setLearningProgress(user.uid, itemId, next);
-    } catch {
-      // Real Firestore error (offline, permissions, etc). Revert the
-      // optimistic update since it never actually saved.
->>>>>>> 193e5985b87170ea29f4ecb458d1028b9e8bbddd
       setProgress((prev) => ({ ...prev, [itemId]: current }));
     } finally {
       setSavingId(null);
     }
   }
 
-<<<<<<< HEAD
   const toggleExpand = (itemId: string) => {
     setExpandedId(expandedId === itemId ? null : itemId);
   };
@@ -132,26 +97,10 @@ export default function LearningPage() {
       </div>
 
       <div className="space-y-4">
-=======
-  return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="font-display text-3xl font-semibold text-ink">
-          Learning Center
-        </h1>
-        <p className="mt-1 text-ink-soft">
-          Video, podcast, artikel, dan audio mindfulness untuk dipelajari kapan saja.
-          Klik salah satu untuk menandai progres kamu.
-        </p>
-      </div>
-
-      <div className="space-y-3">
->>>>>>> 193e5985b87170ea29f4ecb458d1028b9e8bbddd
         {learningLibrary.map((item) => {
           const Icon = typeIcon[item.type];
           const itemProgress = progress[item.id] ?? 0;
           const isSaving = savingId === item.id;
-<<<<<<< HEAD
           const isExpanded = expandedId === item.id;
           const chapters = subItemsMap[item.id] || [];
           const totalChapters = chapters.length;
@@ -289,65 +238,13 @@ export default function LearningPage() {
                 </div>
               )}
             </div>
-=======
-          return (
-            <button
-              key={item.id}
-              onClick={() => handleToggle(item.id)}
-              disabled={!user || loading}
-              className="flex w-full items-center gap-4 rounded-2xl border border-border bg-surface p-5 text-left transition-colors hover:border-primary/40 disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-surface-sunk text-primary">
-                <Icon size={18} />
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2">
-                  <p className="font-medium text-ink">{item.title}</p>
-                  <span className="rounded-full bg-surface-sunk px-2 py-0.5 text-[11px] font-medium text-ink-soft">
-                    {item.type}
-                  </span>
-                </div>
-                <div className="mt-2 flex items-center gap-3">
-                  {loading ? (
-                    <Skeleton className="h-1.5 w-40 max-w-[40vw]" />
-                  ) : (
-                    <div className="h-1.5 w-40 max-w-[40vw] overflow-hidden rounded-full bg-surface-sunk">
-                      <div
-                        className="h-full rounded-full bg-accent transition-all"
-                        style={{ width: `${itemProgress}%` }}
-                      />
-                    </div>
-                  )}
-                  <span className="text-xs text-ink-soft">{item.duration}</span>
-                </div>
-              </div>
-              <span className="shrink-0 text-xs font-medium text-ink-soft">
-                {isSaving
-                  ? "Menyimpan…"
-                  : itemProgress === 100
-                  ? (
-                    <span className="inline-flex items-center gap-1 text-success">
-                      <Check size={13} /> Selesai
-                    </span>
-                  )
-                  : itemProgress === 0
-                  ? "Belum dimulai"
-                  : `${itemProgress}%`}
-              </span>
-            </button>
->>>>>>> 193e5985b87170ea29f4ecb458d1028b9e8bbddd
           );
         })}
       </div>
 
       {!user && (
-<<<<<<< HEAD
         <p className="text-sm text-center text-ink-soft">
           Masuk untuk menyimpan progres belajar Anda.
-=======
-        <p className="text-sm text-ink-soft">
-          Masuk untuk menyimpan progres belajar kamu.
->>>>>>> 193e5985b87170ea29f4ecb458d1028b9e8bbddd
         </p>
       )}
     </div>

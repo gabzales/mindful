@@ -1,12 +1,10 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState } from "react";
-import { User } from "firebase/auth";
-import { onAuthStateChanged } from "firebase/auth";
+import { onAuthStateChanged, type User } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import { auth, db, isFirebaseReady } from "@/lib/firebase/config";
-import type { UserProfile, Role } from "@/lib/roles";
-import { ROLES } from "@/lib/roles";
+import { ROLES, type UserProfile, type Role } from "@/lib/roles";
 
 interface AuthCtx {
   user: User | null;
@@ -14,17 +12,6 @@ interface AuthCtx {
   loading: boolean;
   configError: boolean;
 }
-
-const defaultProfile: UserProfile = {
-  uid: "",
-  email: "",
-  name: "Andi Pratama",
-  role: ROLES.EMPLOYEE,
-  department: "Finance",
-  jobLevel: "Staff",
-  gender: "Male",
-  age: 29,
-};
 
 const AuthContext = createContext<AuthCtx>({
   user: null,
@@ -42,7 +29,6 @@ export function FirebaseProvider({ children }: { children: React.ReactNode }) {
   });
 
   useEffect(() => {
-<<<<<<< HEAD
     if (typeof window !== "undefined" && localStorage.getItem("mock_user") === "true") {
       const mockUser = {
         uid: "dummy_uid_123",
@@ -67,8 +53,6 @@ export function FirebaseProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
-=======
->>>>>>> 193e5985b87170ea29f4ecb458d1028b9e8bbddd
     if (!isFirebaseReady()) {
       setState({ user: null, profile: null, loading: false, configError: true });
       return;

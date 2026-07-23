@@ -22,17 +22,6 @@ export interface AssessmentType {
   title: string;
   description: string;
   questions: string[];
-  // Parallel array to `questions`. true at index i means question i is
-  // phrased POSITIVELY (e.g. "Saya bisa bangkit dengan cepat setelah
-  // menghadapi masalah.") so a high agreement score should count as GOOD,
-  // not bad — the raw 1-5 answer gets flipped (6 - value) before it's
-  // averaged into the overall score. Every dimension's score is meant to
-  // consistently mean "higher = more concern" (this is what the High/Medium/
-  // Low colors and recommendations assume), so any positively-phrased
-  // question — common in resilience, and some sleep / work-life-balance
-  // questions — MUST be marked here or the level/color/recommendation shown
-  // to the employee comes out backwards. Optional/omitted entries are
-  // treated as false (negatively phrased, scored as-is).
   reverseScored?: boolean[];
   duration: string;
   createdAt?: unknown;
@@ -57,7 +46,6 @@ function requireDb() {
   return db;
 }
 
-// Realtime list of all assessment types (questionnaires), newest first.
 export function subscribeAssessmentTypes(
   cb: (types: AssessmentType[]) => void
 ): Unsubscribe {
@@ -71,8 +59,6 @@ export function subscribeAssessmentTypes(
   });
 }
 
-// Admin: create or overwrite an assessment type. Uses `slug` as the doc id
-// so slugs stay unique and double as the URL segment.
 export async function saveAssessmentType(input: NewAssessmentType) {
   const fdb = requireDb();
   await setDoc(doc(fdb, "assessmentTypes", input.slug), {
@@ -81,13 +67,11 @@ export async function saveAssessmentType(input: NewAssessmentType) {
   });
 }
 
-// Admin: delete an assessment type.
 export async function deleteAssessmentType(slug: string) {
   const fdb = requireDb();
   await deleteDoc(doc(fdb, "assessmentTypes", slug));
 }
 
-// Employee: submit a completed assessment's answers + computed score.
 export async function saveAssessmentResult(
   input: Omit<AssessmentResult, "id" | "createdAt">
 ) {
@@ -98,9 +82,6 @@ export async function saveAssessmentResult(
   });
 }
 
-// Employee: realtime subscription to ALL of this user's results, newest
-// first — used on the "Laporan Saya" history page (unlike
-// getMyLatestResults, this does not collapse to one-per-dimension).
 export function subscribeMyAllResults(
   uid: string,
   cb: (results: AssessmentResult[]) => void
@@ -119,10 +100,8 @@ export function subscribeMyAllResults(
     cb(snap.docs.map((d) => ({ id: d.id, ...(d.data() as Omit<AssessmentResult, "id">) })));
   });
 }
-// Employee: fetch this user's most recent result per dimension, used to
-// populate the "latest scores" summary on their dashboard home.
+
 export async function getMyLatestResults(uid: string): Promise<AssessmentResult[]> {
-<<<<<<< HEAD
   if (uid === "dummy_uid_123") {
     return [
       {
@@ -167,8 +146,6 @@ export async function getMyLatestResults(uid: string): Promise<AssessmentResult[
       }
     ];
   }
-=======
->>>>>>> 193e5985b87170ea29f4ecb458d1028b9e8bbddd
   const fdb = requireDb();
   const q = query(
     collection(fdb, "assessmentResults"),

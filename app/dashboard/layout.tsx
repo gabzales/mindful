@@ -6,11 +6,8 @@ import { Sidebar } from "@/components/Sidebar";
 import { useAuthContext } from "@/components/FirebaseProvider";
 import { Skeleton, SkeletonLine } from "@/components/Skeleton";
 import { ROLES } from "@/lib/roles";
-<<<<<<< HEAD
 import { MobileHeader } from "@/components/MobileHeader";
 import { BottomNav } from "@/components/BottomNav";
-=======
->>>>>>> 193e5985b87170ea29f4ecb458d1028b9e8bbddd
 
 export default function DashboardLayout({
   children,
@@ -94,19 +91,12 @@ export default function DashboardLayout({
 
   return (
     <div className="flex min-h-screen bg-background">
-<<<<<<< HEAD
       <MobileHeader />
       <Sidebar hideMobileToggle={true} />
       <main className="flex-1 lg:pl-64">
         <div className="mx-auto max-w-6xl px-4 pb-24 pt-20 sm:px-8 lg:pt-10 lg:pb-10">{children}</div>
       </main>
       <BottomNav />
-=======
-      <Sidebar />
-      <main className="flex-1 overflow-y-auto">
-        <div className="mx-auto max-w-6xl px-4 pb-10 pt-20 sm:px-8 lg:pt-10">{children}</div>
-      </main>
->>>>>>> 193e5985b87170ea29f4ecb458d1028b9e8bbddd
     </div>
   );
 }
