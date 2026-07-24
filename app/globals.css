@@ -1,0 +1,101 @@
+@import "tailwindcss";
+
+:root {
+  --background: #FFFFFF;
+  --surface: #FFFFFF;
+  --surface-sunk: #F7F4FA;
+  --ink: #2A093D;
+  --ink-soft: #6B5A78;
+  --primary: #2A093D;
+  --primary-soft: #4A2266;
+  --primary-foreground: #FFFFFF;
+  --accent: #FFA400;
+  --accent-soft: #FFD98A;
+  --support: #FFA400;
+  --danger: #E53935;
+  --danger-soft: #FDE8E8;
+  --success: #43A047;
+  --success-soft: #E8F5E9;
+  --warning: #FFA400;
+  --warning-soft: #FEF3E0;
+  --border: #E7E1EC;
+
+  --font-display-family: "Inter", ui-sans-serif, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-body-family: "Inter", ui-sans-serif, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-mono-family: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-sunk: var(--surface-sunk);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-primary: var(--primary);
+  --color-primary-soft: var(--primary-soft);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-support: var(--support);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-border: var(--border);
+
+  --font-display: var(--font-display-family);
+  --font-body: var(--font-body-family);
+  --font-mono: var(--font-mono-family);
+
+  --animate-breath: breath 6s ease-in-out infinite;
+  --animate-float-slow: float-slow 5s ease-in-out infinite;
+  --animate-float-delayed: float-delayed 5s ease-in-out infinite;
+
+  @keyframes breath {
+    0%, 100% { transform: scale(1); opacity: 0.4; }
+    50% { transform: scale(1.3); opacity: 0.95; }
+  }
+  @keyframes float-slow {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+  @keyframes float-delayed {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(10px); }
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--ink);
+  font-family: var(--font-body);
+}
+
+::selection {
+  background: var(--accent-soft);
+  color: var(--primary);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@media print {
+  aside,
+  header nav {
+    display: none !important;
+  }
+  main {
+    overflow: visible !important;
+    padding: 0 !important;
+  }
+  body {
+    background: #fff !important;
+  }
+}

@@ -1,0 +1,245 @@
+rules_version = '2';
+
+// IMPORTANT: This file is a reference only. Firestore does not read rules
+// from your repo automatically — you must copy this into
+// Firebase Console > Firestore Database > Rules (or deploy via the
+// Firebase CLI: `firebase deploy --only firestore:rules`).
+//
+// Without rules like these applied, Firestore falls back to whatever mode
+// the database was created in (either "locked" — nothing works — or
+// "test mode" — anyone on the internet can read/write everything, which is
+// unsafe to leave on in production).
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function myRole() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && myRole() in ["super_admin", "mi_admin"];
+    }
+
+    // NOTE: there used to be a canReadAggregates() helper granting HR
+    // Client / AdMedika raw read access to the users, assessmentResults,
+    // counselingBookings, and learningProgress collections "for aggregate
+    // dashboard stats". It's gone now — Firestore rules can't tell "reading
+    // to compute an aggregate" apart from "reading one specific record", so
+    // that helper technically let HR/AdMedika read any individual
+    // employee's raw data directly via the SDK. Aggregates for those roles
+    // are now computed server-side in /api/stats (Vercel function using the
+    // Firebase Admin SDK, which bypasses these rules) and cached in
+    // `statsCache/*` (see below) — HR/AdMedika have no rule-based path to
+    // raw per-employee documents anymore, only to their own.
+
+    // Users can read/update their own profile. Admins can read any user's
+    // profile individually.
+    //
+    // HR/AdMedika (canReadAggregates(), non-admin roles) do NOT get raw read
+    // access here anymore. They used to, for aggregate dashboard stats
+    // (headcount, department breakdown), but Firestore rules can't
+    // distinguish "reading to compute an aggregate" from "reading one
+    // specific employee's record" — so that access technically let an
+    // HR/AdMedika account read any individual employee's profile directly
+    // if they knew the UID. Fixed: aggregation now happens server-side in
+    // /api/stats (Vercel function using the Firebase Admin SDK, which
+    // bypasses these rules), which derives the caller's own role/company
+    // from their verified ID token and returns only pre-computed summaries.
+    // HR/AdMedika have no path to raw `users` docs other than their own.
+    match /users/{uid} {
+      allow read: if isSignedIn() && (request.auth.uid == uid || isAdmin());
+      // Self-registration only allowed into the roles the app's own
+      // registration form actually offers (employee, hr_client,
+      // psychologist, admedika). Without this check, nothing stops a
+      // signed-in user from writing role: "mi_admin" or "super_admin" into
+      // their own doc directly via the Firestore SDK (bypassing the
+      // registration UI entirely) and granting themselves the highest
+      // privilege in the app. mi_admin/super_admin accounts must only be
+      // provisioned via the Firebase Admin SDK (e.g. scripts/seed.mjs or a
+      // trusted backend), which bypasses these rules entirely, or by an
+      // existing admin promoting someone (see the isAdmin() update rule
+      // below).
+      allow create: if isSignedIn() && request.auth.uid == uid
+                    && request.resource.data.role in ["employee", "hr_client", "psychologist", "admedika"];
+      // Anyone can update their own profile EXCEPT the `role` field.
+      // `company` is also locked from self-edit for any role above
+      // `employee` (hr_client, admedika, mi_admin, super_admin): those
+      // roles get elevated aggregate-read access scoped by *their own*
+      // `company` value (see canReadAggregates() below), so letting them
+      // freely rewrite that value via a direct Firestore SDK call (bypassing
+      // the app's own settings UI, which never exposes this field to them)
+      // would let an HR/AdMedika account relabel themselves into another
+      // client company and read that company's aggregate dashboard data —
+      // a real multi-tenant leak. Only an admin can (re)assign `company`
+      // for those roles. Employees can still self-edit their own `company`
+      // (needed at registration/profile-completion time) since that role
+      // never gets aggregate cross-employee read access.
+      allow update: if isSignedIn() && request.auth.uid == uid
+                    && request.resource.data.role == resource.data.role
+                    && (resource.data.role == "employee"
+                        || request.resource.data.company == resource.data.company);
+      // Only admins can change a user's role or reassign company for
+      // elevated roles. Extra restriction: mi_admin can manage everyone
+      // EXCEPT an existing super_admin — otherwise an mi_admin could
+      // demote/lock out the platform's super admins via the Users screen.
+      // Only an actual super_admin may touch a super_admin's own doc.
+      allow update: if isAdmin()
+                    && (myRole() == "super_admin" || resource.data.role != "super_admin");
+      // A user can delete their own profile (account deletion flow); admins
+      // can also delete any user's profile (user-management screen), with
+      // the same mi_admin-can't-touch-super_admin restriction as update.
+      // Note this only removes the Firestore profile doc, never the
+      // underlying Firebase Auth account — see the doc-comment on
+      // deleteUserProfile() in lib/firestore/users.ts.
+      allow delete: if isSignedIn()
+                    && (request.auth.uid == uid
+                        || (isAdmin() && (myRole() == "super_admin" || resource.data.role != "super_admin")));
+    }
+
+    // Company directory (name, PIC contact, employee quota, status).
+    // Any signed-in user can read it (needed for the HR/register company
+    // picker and AdMedika's client list); only admins manage entries.
+    // Not sensitive on its own — no individual employee data lives here.
+    match /companies/{companyId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    // Global settings (OTP toggle, demo mode toggle). Anyone signed in or
+    // not can READ this (needed so RoleGuard can check demo mode before
+    // login), but only admins can WRITE it.
+    match /settings/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // OTP codes are only ever written/read by the server (via the
+    // /api/otp/* routes using Firebase Admin, which bypasses these rules
+    // entirely). Block direct client access.
+    match /otpCodes/{email} {
+      allow read, write: if false;
+    }
+
+    // Assessment questionnaires. Any signed-in user can read them (needed
+    // to take an assessment); only admins can create/edit/delete them.
+    match /assessmentTypes/{slug} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    // Assessment results. A user can create their own results and read only
+    // their own; admins can read all (for internal ops). HR/AdMedika no
+    // longer get raw read access here — see the note on /users above; they
+    // get aggregate mental-health stats exclusively via /api/stats, never
+    // individual employees' raw scores. Results are never edited or
+    // deleted once submitted (append-only history).
+    match /assessmentResults/{resultId} {
+      allow read: if isSignedIn() && (resource.data.uid == request.auth.uid || isAdmin());
+      allow create: if isSignedIn() && request.resource.data.uid == request.auth.uid;
+      allow update, delete: if false;
+    }
+
+    // Webinars. Any signed-in user can read them; only admins can
+    // create/edit/delete. `seatsLeft` is also updated by regular employees
+    // via registerForWebinar/unregisterFromWebinar, so we allow a narrow
+    // update path for that specific field alongside the admin path.
+    match /webinars/{webinarId} {
+      allow read: if isSignedIn();
+      allow create, delete: if isAdmin();
+      allow update: if isAdmin()
+                    || (isSignedIn()
+                        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["seatsLeft"]));
+    }
+
+    // Webinar registrations. A user can create/delete their own
+    // registration (doc id is `${uid}_${webinarId}`) and read their own;
+    // admins can read all for reporting.
+    match /webinarRegistrations/{regId} {
+      allow read: if isSignedIn() && (resource.data.uid == request.auth.uid || isAdmin());
+      allow create: if isSignedIn() && request.resource.data.uid == request.auth.uid
+                    && regId == request.auth.uid + "_" + request.resource.data.webinarId;
+      allow delete: if isSignedIn() && resource.data.uid == request.auth.uid;
+      allow update: if false;
+    }
+
+    // Psychologist profiles. Any signed-in user can read them (needed to
+    // pick one when booking); only admins can create/edit/delete, including
+    // setting the `linkedUid` field that ties a profile to a login account.
+    match /psychologists/{psychId} {
+      allow read: if isSignedIn();
+      allow create, delete: if isAdmin();
+      // Admins can edit anything; a psychologist whose account is linked
+      // (linkedUid) to this profile can also update it, but ONLY the
+      // `availability` field (their own weekly schedule) — not their name,
+      // specialty, or which account is linked, which stay admin-only.
+      allow update: if isAdmin()
+                    || (isSignedIn()
+                        && resource.data.linkedUid == request.auth.uid
+                        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["availability"]));
+    }
+
+    // Counseling bookings. An employee can create their own booking and
+    // read/cancel it; the linked psychologist can read bookings assigned to
+    // them and mark them completed; admins can read all for internal ops.
+    // HR/AdMedika no longer get raw read access here — see the note on
+    // /users above; counseling-session counts reach their dashboard only as
+    // an aggregate via /api/stats, never individual bookings.
+    match /counselingBookings/{bookingId} {
+      allow read: if isSignedIn() && (
+        resource.data.uid == request.auth.uid
+        || isAdmin()
+        || get(/databases/$(database)/documents/psychologists/$(resource.data.psychologistId)).data.linkedUid == request.auth.uid
+      );
+      allow create: if isSignedIn() && request.resource.data.uid == request.auth.uid
+                    && request.resource.data.status == "Upcoming";
+      // Employee can cancel their own booking or add feedback; the linked
+      // psychologist can mark it completed.
+      allow update: if isSignedIn() && (
+        (resource.data.uid == request.auth.uid
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["status", "feedbackRating", "feedbackComment"]))
+        || (get(/databases/$(database)/documents/psychologists/$(resource.data.psychologistId)).data.linkedUid == request.auth.uid
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["status"]))
+      );
+      allow delete: if false;
+    }
+
+    // Learning Center progress. One doc per user (`learningProgress/{uid}`)
+    // storing { [itemId]: 0-100 }. Only the owning user can read/write their
+    // own progress; admins can read for internal ops. If HR-facing
+    // aggregate reporting gets built for this later, route it through
+    // /api/stats like the other collections instead of granting HR a raw
+    // read path here.
+    match /learningProgress/{uid} {
+      allow read: if isSignedIn() && (request.auth.uid == uid || isAdmin());
+      allow write: if isSignedIn() && request.auth.uid == uid;
+    }
+
+    // Slot locks prevent double-booking the same psychologist/date/time.
+    // Doc id is `${psychologistId}_${date}_${time}`. Any signed-in user can
+    // read them (needed to grey out taken slots); only the transaction that
+    // creates/cancels a booking should write them, enforced by requiring
+    // the lock's `uid` to match the caller.
+    match /counselingSlotLocks/{lockId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && request.resource.data.uid == request.auth.uid;
+      allow delete: if isSignedIn() && resource.data.uid == request.auth.uid;
+      allow update: if false;
+    }
+
+    // Cached aggregate rollups written by /api/stats (Vercel function,
+    // Firebase Admin SDK). Blocked from ALL direct client access — even
+    // though a doc here only ever holds aggregate numbers, not raw
+    // per-employee data, there's no reason for the browser to read/write it
+    // directly; the API route is the only intended path, and it bypasses
+    // these rules anyway (Admin SDK), so this is effectively "deny by
+    // default" rather than a functional restriction on the app itself.
+    match /statsCache/{cacheKey} {
+      allow read, write: if false;
+    }
+  }
+}
